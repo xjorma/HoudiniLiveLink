@@ -1,0 +1,4 @@
+# Ignore houdini backup files
+/backup/
+/HDA/backup/
+
