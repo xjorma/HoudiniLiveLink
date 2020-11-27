@@ -14,8 +14,9 @@ public class HandUDP : MonoBehaviour
     UdpClient udpClient;
     List<Transform> list;
 
-    string[] boneNames = {"b_l_wrist", "b_l_thumb1", "b_l_thumb2", "b_l_thumb3", "b_l_index1", "b_l_index2", "b_l_index3", "b_l_middle1", "b_l_middle2", "b_l_middle3", "b_l_ring1", "b_l_ring2", "b_l_ring3", "b_l_pinky0", "b_l_pinky1", "b_l_pinky2", "b_l_pinky3" };
-    
+    string[] boneNames = {  "b_l_wrist", "b_l_thumb1", "b_l_thumb2", "b_l_thumb3", "b_l_index1", "b_l_index2", "b_l_index3", "b_l_middle1", "b_l_middle2", "b_l_middle3", "b_l_ring1", "b_l_ring2", "b_l_ring3", "b_l_pinky0", "b_l_pinky1", "b_l_pinky2", "b_l_pinky3",
+                            "b_r_wrist", "b_r_thumb1", "b_r_thumb2", "b_r_thumb3", "b_r_index1", "b_r_index2", "b_r_index3", "b_r_middle1", "b_r_middle2", "b_r_middle3", "b_r_ring1", "b_r_ring2", "b_r_ring3", "b_r_pinky0", "b_r_pinky1", "b_r_pinky2", "b_r_pinky3"};
+
     Transform RecursiveFind(Transform transform, string name)
     {
         foreach(Transform childTrans in transform)
