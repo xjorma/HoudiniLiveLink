@@ -81,6 +81,8 @@ public:
 
 PositionStreamer *posStream = nullptr;
 
+bool displayPointCloud = false;
+
 
 void PrintUsage()
 {
@@ -201,8 +203,7 @@ void SendBones(k4abt_body_t & body)
     for (int joint = 0; joint < static_cast<int>(K4ABT_JOINT_COUNT); joint++)
     {
         const k4a_float3_t& jointPosition = body.skeleton.joints[joint].position;
-        const k4a_quaternion_t& jointOrientation = body.skeleton.joints[joint].orientation;
- 
+        const k4a_quaternion_t& jointOrientation = body.skeleton.joints[joint].orientation; 
         if (joint != 0)
         {
             ss << "|";
@@ -218,26 +219,30 @@ void VisualizeResult(k4abt_frame_t bodyFrame, Window3dWrapper& window3d, int dep
 
     // Obtain original capture that generates the body tracking result
     k4a_capture_t originalCapture = k4abt_frame_get_capture(bodyFrame);
-    k4a_image_t depthImage = k4a_capture_get_depth_image(originalCapture);
-
-    std::vector<Color> pointCloudColors(depthWidth * depthHeight, { 1.f, 1.f, 1.f, 1.f });
-
-    // Read body index map and assign colors
-    k4a_image_t bodyIndexMap = k4abt_frame_get_body_index_map(bodyFrame);
-    const uint8_t* bodyIndexMapBuffer = k4a_image_get_buffer(bodyIndexMap);
-    for (int i = 0; i < depthWidth * depthHeight; i++)
+    if (displayPointCloud)
     {
-        uint8_t bodyIndex = bodyIndexMapBuffer[i];
-        if (bodyIndex != K4ABT_BODY_INDEX_MAP_BACKGROUND)
-        {
-            uint32_t bodyId = k4abt_frame_get_body_id(bodyFrame, bodyIndex);
-            pointCloudColors[i] = g_bodyColors[bodyId % g_bodyColors.size()];
-        }
-    }
-    k4a_image_release(bodyIndexMap);
+        k4a_image_t depthImage = k4a_capture_get_depth_image(originalCapture);
 
-    // Visualize point cloud
-    window3d.UpdatePointClouds(depthImage, pointCloudColors);
+        std::vector<Color> pointCloudColors(depthWidth * depthHeight, { 1.f, 1.f, 1.f, 1.f });
+
+        // Read body index map and assign colors
+        k4a_image_t bodyIndexMap = k4abt_frame_get_body_index_map(bodyFrame);
+        const uint8_t* bodyIndexMapBuffer = k4a_image_get_buffer(bodyIndexMap);
+        for (int i = 0; i < depthWidth * depthHeight; i++)
+        {
+            uint8_t bodyIndex = bodyIndexMapBuffer[i];
+            if (bodyIndex != K4ABT_BODY_INDEX_MAP_BACKGROUND)
+            {
+                uint32_t bodyId = k4abt_frame_get_body_id(bodyFrame, bodyIndex);
+                pointCloudColors[i] = g_bodyColors[bodyId % g_bodyColors.size()];
+            }
+        }
+        k4a_image_release(bodyIndexMap);
+
+        // Visualize point cloud
+        window3d.UpdatePointClouds(depthImage, pointCloudColors);
+        k4a_image_release(depthImage);
+    }
 
     // Visualize the skeleton data
     window3d.CleanJointsAndBones();
@@ -254,7 +259,7 @@ void VisualizeResult(k4abt_frame_t bodyFrame, Window3dWrapper& window3d, int dep
         Color lowConfidenceColor = color;
         lowConfidenceColor.a = 0.1f;
 
-        if (i == 0)
+        if (i == 0)     // send only the first one
         {
             SendBones(body);
         }
@@ -294,9 +299,7 @@ void VisualizeResult(k4abt_frame_t bodyFrame, Window3dWrapper& window3d, int dep
     }
 
     k4a_capture_release(originalCapture);
-    k4a_image_release(depthImage);
-
-}
+ }
 
 void PlayFile(InputSettings inputSettings) {
     // Initialize the 3d window controller
@@ -491,9 +494,10 @@ int main(int argc, char** argv)
     if (ParseInputSettingsFromArg(argc, argv, inputSettings))
     {
         bool network = true;
+        displayPointCloud = false;
         if (network)
         {
-            posStream = new UDPStreamer("127.0.0.1", 6969);
+            posStream = new UDPStreamer("127.0.0.1", 6960);
         }
         else
         {
